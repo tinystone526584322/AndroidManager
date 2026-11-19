@@ -1,0 +1,2 @@
+-keep class com.diy.androidmanager.ShellUserService { *; }
+-keep class com.diy.androidmanager.IShellService** { *; }
