@@ -216,7 +216,7 @@ fun MainScreen(
 
     // Tab 1 状态：应用列表
     var allApps by remember { mutableStateOf<List<AppEntry>>(emptyList()) }
-    var filterMode by remember { mutableIntStateOf(0) } // 0: 推荐列表, 1: 可恢复, 2: 已启用, 3: 全部
+    var filterMode by remember { mutableIntStateOf(0) }
     var searchQuery by remember { mutableStateOf("") }
     var selectedPkgs by remember { mutableStateOf<Set<String>>(emptySet()) }
     var riskyConfirmAction by remember { mutableStateOf<String?>(null) }
@@ -227,8 +227,7 @@ fun MainScreen(
             PackageData.optimizationItems.forEach { put(it.id, it.defaultChecked) }
         }
     }
-    var optLogs by remember { mutableStateOf("就绪。勾选下方项目后点击应用，所有选项均支持一键恢复系统默认。
-") }
+    var optLogs by remember { mutableStateOf("就绪。勾选下方项目后点击应用，所有选项均支持一键恢复系统默认。\n") }
     var confirmDialogTitle by remember { mutableStateOf<String?>(null) }
     var confirmDialogMessage by remember { mutableStateOf("") }
     var confirmDialogAction by remember { mutableStateOf<(() -> Unit)?>(null) }
@@ -348,7 +347,6 @@ fun MainScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Shizuku 未就绪时的引导卡片
             if (!shizukuReady) {
                 Card(
                     modifier = Modifier
@@ -364,8 +362,7 @@ fun MainScreen(
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            "当前状态：$shizukuStatus
-步骤：1. 安装并打开 Shizuku -> 2. 通过无线调试启动 Shizuku -> 3. 点击下方授权按钮。",
+                            "当前状态：$shizukuStatus\n步骤：1. 安装并打开 Shizuku -> 2. 通过无线调试启动 Shizuku -> 3. 点击下方授权按钮。",
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onErrorContainer
                         )
@@ -381,7 +378,6 @@ fun MainScreen(
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
 
-            // 双标签页切换
             TabRow(selectedTabIndex = selectedTab) {
                 Tab(
                     selected = selectedTab == 0,
@@ -396,9 +392,6 @@ fun MainScreen(
             }
 
             if (selectedTab == 0) {
-                // ==========================================
-                // Tab 1: 应用精简与恢复
-                // ==========================================
                 val filterLabels = listOf("推荐/已知", "可恢复", "已启用", "全部")
                 Row(
                     modifier = Modifier
@@ -532,7 +525,6 @@ fun MainScreen(
                     }
                 }
 
-                // 底部批量操作栏
                 HorizontalDivider()
                 Row(
                     modifier = Modifier
@@ -566,9 +558,6 @@ fun MainScreen(
                 }
 
             } else {
-                // ==========================================
-                // Tab 2: 性能优化与系统维护
-                // ==========================================
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -576,7 +565,6 @@ fun MainScreen(
                         .padding(12.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // 一键维护区（带二次确认）
                     Text("🛠️ 一键维护（均含二次确认防误触）", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -591,12 +579,9 @@ fun MainScreen(
                                 confirmDialogAction = {
                                     scope.launch {
                                         isBusy = true
-                                        optLogs += "▶ 开始清理全局应用缓存...
-"
+                                        optLogs += "▶ 开始清理全局应用缓存...\n"
                                         val (ok, out) = execShell("pm trim-caches 999G")
-                                        optLogs += if (ok) "✅ 清理完成！$out
-" else "❌ 失败：$out
-"
+                                        optLogs += if (ok) "✅ 清理完成！$out\n" else "❌ 失败：$out\n"
                                         isBusy = false
                                     }
                                 }
@@ -612,12 +597,9 @@ fun MainScreen(
                                 confirmDialogAction = {
                                     scope.launch {
                                         isBusy = true
-                                        optLogs += "▶ 正在执行 ART/DEX 深度编译优化（请稍候）...
-"
+                                        optLogs += "▶ 正在执行 ART/DEX 深度编译优化（请稍候）...\n"
                                         val (ok, out) = execShell("cmd package bg-dexopt-job")
-                                        optLogs += if (ok) "✅ 编译优化完成！$out
-" else "❌ 失败：$out
-"
+                                        optLogs += if (ok) "✅ 编译优化完成！$out\n" else "❌ 失败：$out\n"
                                         isBusy = false
                                     }
                                 }
@@ -632,11 +614,9 @@ fun MainScreen(
                                 confirmDialogMessage = "确定要立即重启本机吗？（恢复系统组件或开启强制分屏后建议重启生效）"
                                 confirmDialogAction = {
                                     scope.launch {
-                                        optLogs += "▶ 正在请求重启设备...
-"
+                                        optLogs += "▶ 正在请求重启设备...\n"
                                         val (ok, out) = execShell("reboot")
-                                        if (!ok) optLogs += "⚠️ 重启命令返回：$out
-"
+                                        if (!ok) optLogs += "⚠️ 重启命令返回：$out\n"
                                     }
                                 }
                             }
@@ -645,7 +625,6 @@ fun MainScreen(
 
                     HorizontalDivider()
 
-                    // 推荐优化项
                     Text("—— 基础性能与省电设置（推荐） ——", fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32), fontSize = 14.sp)
                     PackageData.optimizationItems.filter { it.isRecommended }.forEach { item ->
                         OptCheckRow(
@@ -665,7 +644,6 @@ fun MainScreen(
                         )
                     }
 
-                    // 批量操作按钮
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -691,8 +669,7 @@ fun MainScreen(
                                 if (targets.isEmpty()) return@Button
                                 scope.launch {
                                     isBusy = true
-                                    optLogs += "▶ 开始应用 ${targets.size} 项优化：
-"
+                                    optLogs += "▶ 开始应用 ${targets.size} 项优化：\n"
                                     var okCnt = 0
                                     for (t in targets) {
                                         var itemOk = true
@@ -700,18 +677,15 @@ fun MainScreen(
                                             val (ok, out) = execShell(cmd)
                                             if (!ok) {
                                                 itemOk = false
-                                                optLogs += "   ❌ [${t.name}] $out
-"
+                                                optLogs += "   ❌ [${t.name}] $out\n"
                                             }
                                         }
                                         if (itemOk) {
                                             okCnt++
-                                            optLogs += "   ✅ [${t.name}] 已应用
-"
+                                            optLogs += "   ✅ [${t.name}] 已应用\n"
                                         }
                                     }
-                                    optLogs += "🎉 完成：$okCnt/${targets.size}
-"
+                                    optLogs += "🎉 完成：$okCnt/${targets.size}\n"
                                     isBusy = false
                                 }
                             }
@@ -722,11 +696,10 @@ fun MainScreen(
                             modifier = Modifier.weight(1f),
                             onClick = {
                                 val targets = PackageData.optimizationItems.filter { optChecks[it.id] == true }
-                                if (targets.isEmpty()) return@Button
+                                if (targets.isEmpty()) return@FilledTonalButton
                                 scope.launch {
                                     isBusy = true
-                                    optLogs += "▶ 开始恢复 ${targets.size} 项为系统默认：
-"
+                                    optLogs += "▶ 开始恢复 ${targets.size} 项为系统默认：\n"
                                     var okCnt = 0
                                     for (t in targets) {
                                         var itemOk = true
@@ -734,25 +707,21 @@ fun MainScreen(
                                             val (ok, out) = execShell(cmd)
                                             if (!ok) {
                                                 itemOk = false
-                                                optLogs += "   ❌ [${t.name}] $out
-"
+                                                optLogs += "   ❌ [${t.name}] $out\n"
                                             }
                                         }
                                         if (itemOk) {
                                             okCnt++
-                                            optLogs += "   ♻️ [${t.name}] 已恢复默认
-"
+                                            optLogs += "   ♻️ [${t.name}] 已恢复默认\n"
                                         }
                                     }
-                                    optLogs += "🎉 恢复完成：$okCnt/${targets.size}
-"
+                                    optLogs += "🎉 恢复完成：$okCnt/${targets.size}\n"
                                     isBusy = false
                                 }
                             }
                         ) { Text("♻️ 恢复选中默认") }
                     }
 
-                    // 执行日志区
                     Text("📋 执行日志", fontWeight = FontWeight.Bold, fontSize = 13.sp)
                     Box(
                         modifier = Modifier
@@ -776,20 +745,14 @@ fun MainScreen(
         }
     }
 
-    // 高危包名二次确认弹窗
     if (riskyConfirmAction != null) {
         val riskyNames = allApps.filter { it.pkg in selectedPkgs && it.isRisky }
-            .joinToString("
-") { "• ${it.name} (${it.pkg})" }
+            .joinToString("\n") { "• ${it.name} (${it.pkg})" }
         AlertDialog(
             onDismissRequest = { riskyConfirmAction = null },
             title = { Text("⚠️ 高风险操作确认") },
             text = {
-                Text("你选中的项目中包含系统关键依赖：
-
-$riskyNames
-
-禁用或卸载可能导致人脸解锁、S Pen 或系统设置异常，确定要继续吗？")
+                Text("你选中的项目中包含系统关键依赖：\n\n$riskyNames\n\n禁用或卸载可能导致人脸解锁、S Pen 或系统设置异常，确定要继续吗？")
             },
             confirmButton = {
                 TextButton(onClick = {
@@ -804,7 +767,6 @@ $riskyNames
         )
     }
 
-    // 一键维护二次确认弹窗
     if (confirmDialogTitle != null) {
         AlertDialog(
             onDismissRequest = { confirmDialogTitle = null },
